@@ -12,31 +12,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-class Key:
-    """
-    Interface only
-    """
-    def __init__(self):
-        self.alg = None
-
-class SigningKey(Key):
-    """
-    Interface only
-
-    Returns: syutil.crypto.Signature
-
-    """
-    def sign(self, bytes):
-        pass
-
-class VerifyKey(Key):
-    """
-    Interface only
-    """
-    def verify(self, bytes):
-        pass
-
-class Signature:
-    def __init__(self):
-        self.signature = None

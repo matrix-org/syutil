@@ -17,7 +17,9 @@
 from syutil.jsonutil import encode_canonical_json
 from syutil.base64util import encode_base64, decode_base64
 
-import twisted.python.log
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def sign_json(json_object, signature_name, signing_key):
@@ -31,20 +33,35 @@ def sign_json(json_object, signature_name, signing_key):
     Returns:
         The modified, signed JSON object."""
 
-    signatures = json_object.get("signatures", {})
-
-    if "signatures" in json_object:
-        del json_object["signatures"]
+    signatures = json_object.pop("signatures", {})
+    meta = json_object.pop("meta", None)
 
     signed = signing_key.sign(encode_canonical_json(json_object))
+    signature_base64 = encode_base64(signed.signature)
 
-    sig_descriptor = "%s:%s" % (signature_name, signing_key.alg)
-
-    signatures[sig_descriptor] = encode_base64(signed.signature)
+    key_id = "%s:%s" % (signing_key.alg, signing_key.version)
+    signatures.setdefault(signature_name, {})[key_id] = signature_base64
 
     json_object["signatures"] = signatures
+    if meta is not None:
+        json_object["meta"] = meta
 
     return json_object
+
+
+def signature_ids(json_object, signature_name, supported_algorithms):
+    """Does the JSON object have a signature for the given name?
+    Args:
+        json_object (dict): The JSON object to check.
+        signature_name (str): The name of the signing entity to check for
+        supported_algorithms (list of str): List of supported signature
+            algorithms
+    Returns:
+        list of key identifier strings.
+    """
+    key_ids = json_object.get("signatures", {}).get(signature_name, {}).keys()
+    return list(key_id for key_id in key_ids
+                if key_id.split(":")[0] in supported_algorithms)
 
 
 class SignatureVerifyException(Exception):
@@ -65,32 +82,36 @@ def verify_signed_json(json_object, signature_name, verify_key):
     """
 
     try:
-        signatures = json_object['signatures']
+        signatures = json_object["signatures"]
     except KeyError:
         raise SignatureVerifyException("No signatures on this object")
 
-    sig_descriptor = "%s:%s" % (signature_name, verify_key.alg)
+    key_id = "%s:%s" % (verify_key.alg, verify_key.version)
 
     try:
-        signature_b64 = signatures[sig_descriptor]
+        signature_b64 = signatures[signature_name][key_id]
     except:
-        raise SignatureVerifyException("Missing signature for %s" % sig_descriptor)
+        raise SignatureVerifyException(
+            "Missing signature for %s, %s" % (signature_name, key_id)
+        )
 
     try:
         signature = decode_base64(signature_b64)
     except:
         raise SignatureVerifyException(
-            "Invalid signature base64 for %s" % signature_name)
+            "Invalid signature base64 for %s, %s" % (signature_name, key_id)
+        )
 
-    json_object_copy = {}
-    json_object_copy.update(json_object)
+    json_object_copy = dict(json_object)
     del json_object_copy["signatures"]
+    json_object_copy.pop("meta", None)
 
     message = encode_canonical_json(json_object_copy)
 
     try:
         verify_key.verify(message, signature)
     except:
-        twisted.python.log.err()
+        logger.exception("Error verifying signature")
         raise SignatureVerifyException(
-            "Unable to verify signature for %s " % signature_name)
+            "Unable to verify signature for %s " % signature_name
+        )
