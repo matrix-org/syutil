@@ -16,6 +16,7 @@
 
 from syutil.jsonutil import encode_canonical_json
 from syutil.base64util import encode_base64, decode_base64
+from syutil.crypto.signing_key import SUPPORTED_ALGORITHMS
 
 import logging
 
@@ -36,11 +37,14 @@ def sign_json(json_object, signature_name, signing_key):
     signatures = json_object.pop("signatures", {})
     meta = json_object.pop("meta", None)
 
-    signed = signing_key.sign(encode_canonical_json(json_object))
+    message_bytes = encode_canonical_json(json_object)
+    signed = signing_key.sign(message_bytes)
     signature_base64 = encode_base64(signed.signature)
 
     key_id = "%s:%s" % (signing_key.alg, signing_key.version)
     signatures.setdefault(signature_name, {})[key_id] = signature_base64
+
+    #logger.debug("SIGNING: %s %s %s", signature_name, key_id, message_bytes)
 
     json_object["signatures"] = signatures
     if meta is not None:
@@ -49,7 +53,8 @@ def sign_json(json_object, signature_name, signing_key):
     return json_object
 
 
-def signature_ids(json_object, signature_name, supported_algorithms):
+def signature_ids(json_object, signature_name,
+                  supported_algorithms=SUPPORTED_ALGORITHMS):
     """Does the JSON object have a signature for the given name?
     Args:
         json_object (dict): The JSON object to check.
@@ -107,6 +112,8 @@ def verify_signed_json(json_object, signature_name, verify_key):
     json_object_copy.pop("meta", None)
 
     message = encode_canonical_json(json_object_copy)
+
+    #logger.debug("VERIFY: %s %s %s", signature_name, key_id, message)
 
     try:
         verify_key.verify(message, signature)

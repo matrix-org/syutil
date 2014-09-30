@@ -2,6 +2,7 @@ from syutil.base64util import encode_base64, decode_base64
 import nacl.signing
 
 NACL_ED25519 = "ed25519"
+SUPPORTED_ALGORITHMS = [NACL_ED25519]
 
 def generate_singing_key(version):
     """Generate a new signing key
@@ -43,6 +44,32 @@ def encode_signing_key_base64(key):
         base64 encoded string.
     """
     return encode_base64(key.encode())
+
+
+def is_signing_algorithm_supported(key_id):
+    """Is the signing algorithm for this key_id supported"""
+    if key_id.startswith(NACL_ED25519 + ":"):
+        return True
+    else:
+        return False
+
+
+def decode_verify_key_bytes(key_id, key_bytes):
+    """Decode a base64 encoded verify key
+    Args:
+        key_id (str): Identifies this key out of the keys for this entity.
+        key_base64 (str): Base64 encoded bytes of the key.
+    Returns:
+        A VerifyKey object.
+    """
+    if key_id.startswith(NACL_ED25519 + ":"):
+        version = key_id[len(NACL_ED25519) + 1:]
+        key = nacl.signing.VerifyKey(key_bytes)
+        key.version = version
+        key.alg = NACL_ED25519
+        return key
+    else:
+        raise ValueError("Unsupported algorithm %s" % (algorithm,))
 
 
 def read_signing_keys(stream):
