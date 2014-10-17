@@ -35,7 +35,7 @@ def sign_json(json_object, signature_name, signing_key):
         The modified, signed JSON object."""
 
     signatures = json_object.pop("signatures", {})
-    meta = json_object.pop("meta", None)
+    unsigned = json_object.pop("unsigned", None)
 
     message_bytes = encode_canonical_json(json_object)
     signed = signing_key.sign(message_bytes)
@@ -47,8 +47,8 @@ def sign_json(json_object, signature_name, signing_key):
     #logger.debug("SIGNING: %s %s %s", signature_name, key_id, message_bytes)
 
     json_object["signatures"] = signatures
-    if meta is not None:
-        json_object["meta"] = meta
+    if unsigned is not None:
+        json_object["unsigned"] = unsigned
 
     return json_object
 
@@ -109,7 +109,7 @@ def verify_signed_json(json_object, signature_name, verify_key):
 
     json_object_copy = dict(json_object)
     del json_object_copy["signatures"]
-    json_object_copy.pop("meta", None)
+    json_object_copy.pop("unsigned", None)
 
     message = encode_canonical_json(json_object_copy)
 
