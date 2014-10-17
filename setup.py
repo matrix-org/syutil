@@ -25,7 +25,7 @@ def read(fname):
 
 setup(
     name="syutil",
-    version="0.0.1",
+    version="0.0.2",
     packages=find_packages(exclude=["tests"]),
     description="Synapse Matrix Server Utilities",
     install_requires=[
