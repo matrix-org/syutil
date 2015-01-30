@@ -29,7 +29,6 @@ setup(
     packages=find_packages(exclude=["tests"]),
     description="Synapse Matrix Server Utilities",
     install_requires=[
-        "Twisted>=14.0.0",
         "service_identity>=1.0.0",
         "pyasn1",
         "pynacl",
