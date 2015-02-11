@@ -15,7 +15,9 @@
 # limitations under the License.
 
 
-import simplejson
+import simplejson as json
+
+from frozendict import frozendict
 
 
 def encode_canonical_json(json_object):
@@ -48,8 +50,8 @@ def encode_pretty_printed_json(json_object):
     ).encode("ascii")
 
 
-class FrozenEncoder(simplejson.JSONEncoder):
+class FrozenEncoder(json.JSONEncoder):
     def default(self, obj):
         if type(obj) is frozendict:
             return dict(obj)
-        return simplejson.JSONEncoder.default(self, obj)
+        return json.JSONEncoder.default(self, obj)
