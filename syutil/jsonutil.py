@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-import simplejson as json
+import simplejson
 
 
 def encode_canonical_json(json_object):
