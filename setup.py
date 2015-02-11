@@ -32,6 +32,8 @@ setup(
         "service_identity>=1.0.0",
         "pyasn1",
         "pynacl",
+        "simplejson>=3.6.5",
+        "frozendict>=0.4",
     ],
     setup_requires=[
         "setuptools_trial",
