@@ -54,6 +54,20 @@ def is_signing_algorithm_supported(key_id):
         return False
 
 
+def decode_verify_key_base64(algorithm, version, key_base64):
+    """Decode a base64 encoded verify key
+    Args:
+        algorithm (str): The algorithm the key is for (currently "ed25519").
+        version (str): Identifies this key out of the keys for this entity.
+        key_base64 (str): Base64 encoded bytes of the key.
+    Returns:
+        A VerifyKey object.
+    """
+    key_id = "%s:%s" % (algorithm, version)
+    key_bytes = decode_base64(key_base64)
+    return decode_verify_key_bytes(key_id, key_bytes)
+
+
 def decode_verify_key_bytes(key_id, key_bytes):
     """Decode a base64 encoded verify key
     Args:
@@ -82,7 +96,24 @@ def read_signing_keys(stream):
     keys = []
     for line in stream:
         algorithm, version, key_base64 = line.split()
-        keys.append(decode_signing_key_base64(algorithm, version, key_base64))
+        key = decode_signing_key_base64(algorithm, version, key_base64)
+        keys.append(key)
+    return keys
+
+
+def read_old_signing_keys(stream):
+    """Reads a list of old keys from a stream
+    Args:
+        stream : A stream to iterate for keys.
+    Returns:
+        list of VerifyKey objects.
+    """
+    keys = []
+    for line in stream:
+        algorithm, version, expired, key_base64 = line.split()
+        key = decode_verify_key_base64(algorithm, version, key_base64)
+        key.expired = int(expired)
+        keys.append(key)
     return keys
 
 
