@@ -4,7 +4,7 @@ import nacl.signing
 NACL_ED25519 = "ed25519"
 SUPPORTED_ALGORITHMS = [NACL_ED25519]
 
-def generate_singing_key(version):
+def generate_signing_key(version):
     """Generate a new signing key
     Args:
         version (str): Identifies this key out the keys for this entity.
