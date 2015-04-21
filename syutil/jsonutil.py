@@ -47,6 +47,7 @@ def encode_pretty_printed_json(json_object):
         ensure_ascii=True,
         indent=4,
         sort_keys=True,
+        cls=FrozenEncoder
     ).encode("ascii")
 
 
