@@ -16,16 +16,31 @@ import os
 from setuptools import setup, find_packages
 
 
-# Utility function to read the README file.
-# Used for the long_description.  It's nice, because now 1) we have a top level
-# README file and 2) it's easier to type in the README file than to put a raw
-# string in below ...
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+here = os.path.abspath(os.path.dirname(__file__))
+
+
+def read_file(path_segments):
+    """Read a file from the package. Takes a list of strings to join to
+    make the path"""
+    file_path = os.path.join(here, *path_segments)
+    with open(file_path) as f:
+        return f.read()
+
+
+def exec_file(path_segments):
+    """Execute a single python file to get the variables defined in it"""
+    result = {}
+    code = read_file(path_segments)
+    exec(code, result)
+    return result
+
+version = exec_file(("syutil", "__init__.py"))["__version__"]
+long_description = read_file(("README",))
+
 
 setup(
     name="syutil",
-    version="0.0.5",
+    version=version,
     packages=find_packages(exclude=["tests"]),
     description="Synapse Matrix Server Utilities",
     install_requires=[
@@ -40,6 +55,6 @@ setup(
         "mock"
     ],
     include_package_data=True,
-    long_description=read("README"),
+    long_description=long_description,
     test_suite='tests'
 )
