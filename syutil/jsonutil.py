@@ -66,7 +66,7 @@ def encode_json(json_object, using_frozen_dicts=True):
         return encode_canonical_json(json_object)
     else:
         # ujson doesn't like frozen_dicts.
-        return ujson.dumps(json_object, ensure_ascii=False).encode("UTF-8")
+        return ujson.dumps(json_object, ensure_ascii=False)
 
 
 class FrozenEncoder(json.JSONEncoder):
