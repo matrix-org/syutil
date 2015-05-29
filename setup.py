@@ -49,6 +49,7 @@ setup(
         "pynacl",
         "simplejson>=3.6.5",
         "frozendict>=0.4",
+        "ujson>=1.33",
     ],
     setup_requires=[
         "setuptools_trial",

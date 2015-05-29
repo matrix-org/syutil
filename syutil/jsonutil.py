@@ -16,6 +16,7 @@
 
 
 import simplejson as json
+import ujson
 
 from frozendict import frozendict
 
@@ -49,6 +50,23 @@ def encode_pretty_printed_json(json_object):
         sort_keys=True,
         cls=FrozenEncoder
     ).encode("ascii")
+
+
+def encode_json(json_object, using_frozen_dicts=True):
+    """Encodes the shortest UTF-8 JSON encoding.
+
+    Args:
+        json_object (dict): The JSON object to encode.
+        using_frozen_dicts (bool): If json_object may include frozen_dicts.
+
+    Returns:
+        bytes encoding the JSON object
+    """
+    if using_frozen_dicts:
+        return encode_canonical_json(json_object)
+    else:
+        # ujson doesn't like frozen_dicts.
+        return ujson.dumps(json_object, ensure_ascii=False)
 
 
 class FrozenEncoder(json.JSONEncoder):
